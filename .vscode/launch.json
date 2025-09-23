@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SososApplication<sosos>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.prosos.sosos.SososApplication",
+            "projectName": "sosos",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

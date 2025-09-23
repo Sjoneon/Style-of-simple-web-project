@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>메인화면 - Sos</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script>
+        // 상품 목록 초기 로드
+        async function loadProducts() {
+            const response = await fetch('/api/products');
+            if (response.ok) {
+                const products = await response.json();
+                renderProducts(products); // 상품 렌더링
+            } else {
+                alert('상품 데이터를 불러오지 못했습니다.');
+            }
+        }
+
+        // 카테고리별 상품 조회
+        async function fetchProductsByCategory(category) {
+            const response = await fetch(`/api/products/category?category=${encodeURIComponent(category)}`);
+            if (response.ok) {
+                const products = await response.json();
+                renderProducts(products);
+            } else {
+                alert('카테고리 데이터를 불러오지 못했습니다.');
+            }
+        }
+
+        // 상품 목록 렌더링
+        function renderProducts(products) {
+            const productListDiv = document.querySelector('.product-list');
+            productListDiv.innerHTML = ''; // 기존 내용 초기화
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                productDiv.innerHTML = `
+                    <a href="/api/products/detail?id=${product.id}">
+                        <img src="${product.imageUrl}" alt="${product.name}" />
+                        <h3>${product.name}</h3>
+                        <p>${product.price}원</p>
+                    </a>
+                `;
+                productListDiv.appendChild(productDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts(); // 상품 목록 초기 로드
+        
+            // 사이드바 클릭 이벤트
+            document.querySelectorAll('.sidebar nav ul li a').forEach(link => {
+                link.addEventListener('click', (event) => {
+                    const category = event.target.textContent.trim();
+                    
+                    // Q&A나 SETTING은 기본 동작 허용
+                    if (event.target.href.endsWith("/api/orders") || event.target.href.includes("/inquiries")) {
+                        return; // 기본 링크 동작 허용
+                    }
+        
+                    event.preventDefault(); // 기본 링크 동작 방지
+                    if (category === "ALL") {
+                        loadProducts();
+                    } else {
+                        fetchProductsByCategory(category);
+                    }
+                });
+            });
+        });            
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Sos</h2>
+        <nav>
+            <ul>
+                <li><a href="#">ALL</a></li>
+                <li><a href="#">BEST</a></li>
+                <li><a href="#">OUTER</a></li>
+                <li><a href="#">TOP</a></li>
+                <li><a href="#">BOTTOMS</a></li>
+                <li><a href="#">SET CLOTHES</a></li>
+                <li><a href="#">SHOES</a></li>
+                <li><a href="#">BAG_ACC</a></li>
+            </ul>
+            <div class="menu-section">
+                <h3>MY</h3>
+                <ul>
+                    <li><a href="#">NOTICE</a></li>
+                    <li><a href="/inquiries">Q&A</a></li>
+                    <li><a href="/api/orders">SETTING</a></li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+    
+    <div class="content">
+        <div class="top-bar">
+            <!-- 로그인 상태에 따라 UI 표시 -->
+            <div th:if="${session.loggedInUser != null}">
+                <span th:if="${session.userType == 'user'}">안녕하세요, <span th:text="${session.loggedInUser.name}"></span>님!</span>
+                <span th:if="${session.userType == 'seller'}">안녕하세요, <span th:text="${session.loggedInUser.businessName}"></span>님!</span>
+                <a href="/users/logout"> 로그아웃</a>
+                <a href="/api/products/cart"> 🛒 장바구니</a> <!-- 로그인 상태에서 장바구니 -->
+            </div>
+            <div th:if="${session.loggedInUser == null}">
+                <a href="/users/login"> 🔑 로그인</a>
+                <a href="/users/register"> 📝 회원가입</a>
+                <a href="#" onclick="alert('회원가입을 먼저 해주세요.')"> 🛒 장바구니</a> <!-- 비로그인 상태 -->
+            </div>
+        </div>
+        
+        
+        <div class="product-list">
+            <!-- 동적으로 상품이 표시됩니다. -->
+        </div>
+    </div>
+</body>
+</html>
